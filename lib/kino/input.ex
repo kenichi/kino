@@ -529,6 +529,24 @@ defmodule Kino.Input do
         Path.join([System.tmp_dir!(), "nonexistent", file_id])
     end
   end
+
+  def radio(label, options, opts \\ [])
+      when is_binary(label) and is_list(options) and is_list(opts) do
+    if options == [] do
+      raise ArgumentError, "expected at least one option, got: []"
+    end
+
+    options = Enum.map(options, fn {key, val} -> {key, to_string(val)} end)
+    values = Enum.map(options, &elem(&1, 0))
+    default = Keyword.get_lazy(opts, :default, fn -> hd(values) end)
+
+    if default not in values do
+      raise ArgumentError,
+            "expected :default to be either of #{Enum.map_join(values, ", ", &inspect/1)}, got: #{inspect(default)}"
+    end
+
+    new(%{type: :radio, label: label, options: options, default: default})
+  end
 end
 
 defimpl Enumerable, for: Kino.Input do
